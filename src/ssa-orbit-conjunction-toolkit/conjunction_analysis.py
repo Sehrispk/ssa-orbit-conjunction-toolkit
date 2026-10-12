@@ -9,6 +9,7 @@ from orbit_data_query import query
 from propagation import generate_ephemeris, generate_ephemeris_array, propagate_distance
 from sgp4.api import SatrecArray
 from sgp4.conveniences import jday
+from plotting import plot_ephemeris
 
 
 @dataclass
@@ -118,11 +119,31 @@ def conjunction_screening(primary_id : str, secondary_id : str, secondary_query_
     
 
     # filter for close approaches (<100km)
+    conjunction_alert_distance_threshold = 100 # [km]
     for i in range(len(secondary_space_objects)):
-        d_ca = np.asarray(d_tca_solvers[i])[d_tca_solvers[i]<100]
-        t_ca = np.asarray(tca_solvers[i])[d_tca_solvers[i]<100]
+        d_ca = np.asarray(d_tca_solvers[i])[d_tca_solvers[i]<conjunction_alert_distance_threshold]
+        t_ca = np.asarray(tca_solvers[i])[d_tca_solvers[i]<conjunction_alert_distance_threshold]
         print(d_ca)
         print(t_ca)
+
+        for t in t_ca:
+            sample_count = int((t - start_time) / timedelta(seconds=dt))
+            sec_positions, sec_velocities, sec_dates = generate_ephemeris_array(
+                    SatrecArray([secondary_satrecs[i]]), [secondary_space_objects[i]], start_time, t, sample_count,
+                )
+            prim_positions, prim_velocities, prim_dates = generate_ephemeris_array(
+                    SatrecArray([primary_satrec]), [primary_space_object], start_time, t, sample_count,
+                )
+
+            
+            trajectory_fig, trajectory_ax, lines = plot_ephemeris(
+                sec_positions, labels=secondary_space_objects[i].name, color="tab:blue", linewidth=1,
+            )
+            _, _, primary_lines = plot_ephemeris(prim_positions, ax=trajectory_ax, labels=primary_space_object.name,)
+            primary_lines[0].set(color="crimson", linestyle="--", linewidth=2.5)
+            trajectory_ax.legend()
+            trajectory_ax.set_title("SGP4 trajectories: ISS and Tianhe")
+            plt.show()
 
     # generate conjunction messages
     # alert for very close approaches
