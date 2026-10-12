@@ -12,6 +12,8 @@ from data_classes import *
 DATA_BASE_URL="https://celestrak.org/NORAD/elements/gp.php"
 DATA_REQUEST_FORMAT="&FORMAT=XML"
 
+QUERY_TYPES=["ID", "GROUP", "NAME", "INTDES"]
+
 SUPPORTED_TIME_SYSTEMS = ["UTC"]
 SUPPORTED_REFERNCE_FRAMES = ["TEME"]
 SUPPORTED_CENTERS = ["EARTH"]
@@ -105,18 +107,18 @@ def _parse_celestrak_xml(xml_response : ET) -> list[SpaceObject]:
     return space_objects
 
 
-def query(query_string : str, query_type : str) -> (list[SpaceObject], SatrecArray):
+def query(query_string : str, query_type : str) -> (list[SpaceObject], list[Satrec]):
     # check input
-    if query_type not in ["ID", "GROUP", "NAME", "INTDES"]:
+    if query_type not in QUERY_TYPES:
         raise ValueError("Invalid query type.")
 
     xml_response, satrecs = _fetch_xml(query_string=query_string, query_type=query_type)
 
-    space_objects = _parse_celestrak_xml(xml_response)#
+    space_objects = _parse_celestrak_xml(xml_response)
     for object, satrec in zip(space_objects, satrecs):
         object.satrec = satrec
 
-    return space_objects, SatrecArray(satrecs)
+    return space_objects, satrecs
     
 
 if __name__=="__main__":

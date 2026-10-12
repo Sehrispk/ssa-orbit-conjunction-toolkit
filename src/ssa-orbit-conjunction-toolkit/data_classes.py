@@ -36,7 +36,7 @@ class OrbitData:
 
 @dataclass
 class SpaceObject:
-    # simple parsing/wrapper of celestrac objects plus ephemeris and propagator fields. Mainly used for easy access.
+    # simple parsing/clone of celestrac data plus ephemeris and satrec fields. Mainly used for easy access.
     name: str # name of space object
     intdes: str # space object INTDES ID
     norad_id: int # norad catalog ID

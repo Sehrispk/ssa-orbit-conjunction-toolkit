@@ -301,7 +301,7 @@ if __name__ == "__main__":
 
     from data_classes import MeanElements
     from orbit_data_query import query
-    from propagation import generate_ephemeris
+    from propagation import generate_ephemeris_array
 
     # Uses real CelesTrak OMM data, reusing the query cache when available.
     # ISS is the primary; China's Tianhe station is the secondary.
@@ -321,7 +321,7 @@ if __name__ == "__main__":
     sample_count = 721  # 30-second spacing, including both endpoints.
     print(f"Propagating ISS and Tianhe from {start_time.isoformat()} to {end_time.isoformat()}")
 
-    positions, velocities, dates = generate_ephemeris(
+    positions, velocities, dates = generate_ephemeris_array(
         SatrecArray([secondary.satrec]), [secondary], start_time, end_time, sample_count,
     )
     trajectory_fig, trajectory_ax, lines = plot_ephemeris(
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     )
 
     # Calculate and add the primary after plotting the secondary.
-    primary_positions, primary_velocities, _ = generate_ephemeris(
+    primary_positions, primary_velocities, _ = generate_ephemeris_array(
         SatrecArray([primary.satrec]), [primary], start_time, end_time, sample_count,
     )
     _, _, primary_lines = plot_ephemeris(
