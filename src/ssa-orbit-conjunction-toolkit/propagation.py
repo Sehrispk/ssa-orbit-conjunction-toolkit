@@ -27,7 +27,13 @@ def _gen_date_range(start_date: datetime, end_date: datetime, N_dates: int) -> t
     jds = []
     jfrs = []
     for date in dates:
-        jd, jfr = jday(*date.timetuple()[:6])
+        jd, jfr = jday(
+            date.year,
+            date.month,
+            date.day,
+            date.hour,
+            date.minute,
+            date.second + date.microsecond / 1e6)
         jds.append(jd)
         jfrs.append(jfr)
     return np.array(jds), np.array(jfrs), dates # (N_dates,) [float, float, datetime]
