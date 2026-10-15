@@ -1,16 +1,20 @@
-from datetime import datetime, timedelta, timezone, UTC
+from datetime import UTC, datetime, timedelta, timezone
 
 import juliandate
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy
+from CDM.CDM import CDMT
 from data_classes import *
 from orbit_data_query import query
-from propagation import generate_ephemeris, generate_ephemeris_array, propagate_distance, propagate_satrec
+from propagation import (
+    generate_ephemeris,
+    generate_ephemeris_array,
+    propagate_distance,
+    propagate_satrec,
+)
 from sgp4.api import SatrecArray
 from sgp4.conveniences import jday
-from plotting import plot_ephemeris
-from CDM.CDM import CDMT
 
 
 def L_distance_sum(julian_date_array : np.ndarray, primary_satrec: Satrec, secondary_satrec: Satrec, primary_space_object : SpaceObject, secondary_space_object : SpaceObject, target_distance : float = 0) -> float:
@@ -103,11 +107,11 @@ def sgp4_distance_minimum_solver(rp : np.ndarray, rs : np.ndarray, dates: np.nda
         # recover dates of distance minimum
         t_min = []
         for jd, jfr in zip(result.x[0::2], result.x[1::2]):
-            t_min.append(datetime.datetime(*juliandate.to_gregorian(jd+jfr), tzinfo=timezone.utc))        
+            t_min.append(datetime(*juliandate.to_gregorian(jd+jfr), tzinfo=timezone.utc))        
         d_min = propagate_distance(result.x[0::2], result.x[1::2], primary_satrec, secondary_satrec, primary_space_object, secondary_space_object)
 
-    t_mins.append(np.array(t_min))
-    d_mins.append(np.array(d_min))
+        t_mins.append(np.array(t_min))
+        d_mins.append(np.array(d_min))
 
     return t_mins, d_mins
 
@@ -243,14 +247,14 @@ def conjunction_screening(primary_space_object : SpaceObject,
                           screen_interval : float = 2,
                           dt : float = 2) -> CDMT:
     """
-    screen for conjunctions for a primary satellite of interest over a time window of 2 days.
+    screen for conjunctions for a primary satellite of interest over a time window.
 
     screen_interval : scrren interval [hours]
     dt : scan time resolution [s]
     """
 
     # propagate satrecs over screen interval (ephimeris)
-    end_time = datetime.datetime.now(timezone.utc)+timedelta(hours=screen_interval)
+    end_time = start_time+timedelta(hours=screen_interval)
     N = int((end_time - start_time) / timedelta(seconds=dt))
     rp, _, dp = generate_ephemeris(primary_satrec, primary_space_object, start_time, end_time, N) # (N_t [km], 3), (N_t [km/s], 3), (N_t [datetime])
     rs, _, _ = generate_ephemeris_array(SatrecArray(secondary_satrecs), secondary_space_objects, start_time, end_time, N) # (N_t [km], 3), (N_t [km/s], 3), (N_t [datetime])
@@ -293,7 +297,7 @@ def conjunction_screening(primary_space_object : SpaceObject,
             # clean up code
             # visualization
             cdm = CDMT(CCSDS_CDM_VERS="1.0",
-                    CREATION_DATE=datetime.datetime.now(tz=UTC).strftime("%m-%d-%YT%H:%M:%S.%f".rstrip('0')),
+                    CREATION_DATE=datetime.now(tz=UTC).strftime("%m-%d-%YT%H:%M:%S.%f".rstrip('0')),
                     ORIGINATOR=None,
                     MESSAGE_FOR=primary_space_object.name,
                     MESSAGE_ID=None,
