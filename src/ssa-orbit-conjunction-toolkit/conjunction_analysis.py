@@ -234,10 +234,6 @@ def find_conjunction_track(dates_mins, d_mins, radius, primary_satrec, secondary
         conjunction_tracks.append(rs_rtn)
 
     return t_entry, t_exit, conjunction_tracks
-
-
-
-
     
 def conjunction_screening(primary_space_object : SpaceObject, 
                           secondary_space_objects : list[SpaceObject], 

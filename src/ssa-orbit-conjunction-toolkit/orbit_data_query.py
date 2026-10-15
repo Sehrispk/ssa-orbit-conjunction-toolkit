@@ -8,6 +8,8 @@ from sgp4.api import Satrec, SatrecArray
 
 import requests
 from data_classes import *
+import os
+import time
 
 DATA_BASE_URL="https://celestrak.org/NORAD/elements/gp.php"
 DATA_REQUEST_FORMAT="&FORMAT=XML"
@@ -31,7 +33,7 @@ def _fetch_xml(query_string : str, query_type : str) -> tuple[ET, list[Satrec]]:
     # xml
     query_params = {query_type:query_string, "FORMAT":"XML"}
     cache_file_path = Path(f".query_cache_{query_type}_{query_string}.xml")
-    if cache_file_path.exists():
+    if cache_file_path.exists() and time.time()-os.path.getmtime(cache_file_path) < 2*60*60:
         print("Loading cached orbital data")
         try:
             xml_response = ET.parse(cache_file_path).getroot()

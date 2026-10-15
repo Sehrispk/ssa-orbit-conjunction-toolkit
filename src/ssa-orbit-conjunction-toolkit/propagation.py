@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     # ephimeris example
     start_time = datetime.now(timezone.utc)
-    end_time = datetime.now(timezone.utc)+timedelta(days=2)
+    end_time = datetime.now(timezone.utc)+timedelta(hours=2)
     dt = 2 # 2s interval
     N = int((end_time - start_time) / timedelta(seconds=2))
     r, v, d = generate_ephemeris_array(SatrecArray(satrecs), space_objects, start_time, end_time, N)
@@ -106,6 +106,28 @@ if __name__ == "__main__":
     r, v, d = generate_ephemeris(satrecs[0], space_objects[0], start_time, end_time, N)
     print(r.shape)
     print(v.shape)
-    print(d.shape)
+
+    from util import TEME_2_ICRF
+    r,v = TEME_2_ICRF(r,v,d)
+
+    import czml3
+
+    epoch=d[0]
+    time_offsets = np.array([
+        (date - epoch).total_seconds()
+        for date in d
+    ])
+
+    traj_r = np.column_stack((time_offsets[:,None], r*1000)).flatten().tolist()
+
+    packet = czml3.Packet(id=space_objects[0].name,
+                          position=czml3.Position(cartesian=traj_r, epoch=epoch.isoformat().replace("+00:00", "Z")),
+                          point=czml3.Point(show=True, color=czml3.Color(rgba=[0,0,255,255]), pixelSize=8),
+                          )
+
+    doc = czml3.Document(packets=[packet])
+
+    filename = "example.czml"
+    doc.save(filename)
 
 
